@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#c92732">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="JAL LSP">
+  <link rel="manifest" href="./jal-lsp-manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./jal-lsp-icon.svg">
+  <title>JAL LSP 見通し</title>
+  <style>
+    :root { color-scheme: light dark; --ink:#17212b; --muted:#687585; --line:#d9e0e7; --paper:#fff; --soft:#f5f8fb; --accent:#c92732; --accent-ink:#fff; --good:#087a4a; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#eef2f6; color:var(--ink); font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:980px; margin:auto; padding:calc(22px + env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) calc(36px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+    h1 { margin:0; font-size:28px; letter-spacing:.02em; }
+    h2 { margin:0 0 14px; font-size:18px; }
+    p { margin:8px 0; } .lead { color:var(--muted); }
+    .notice { margin:22px 0; padding:13px 15px; border-left:4px solid var(--accent); background:#fff6f6; font-size:14px; }
+    .cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:22px 0; }
+    .card, section { background:var(--paper); border:1px solid var(--line); border-radius:12px; }
+    .card { padding:16px; } .card small { color:var(--muted); display:block; } .num { font-size:28px; font-weight:700; margin:4px 0 0; font-variant-numeric:tabular-nums; }
+    section { padding:20px; margin-top:16px; }
+    .settings { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    label { display:block; font-size:13px; color:var(--muted); } input { margin-top:5px; width:100%; border:1px solid var(--line); border-radius:7px; padding:9px; background:var(--paper); color:var(--ink); font:inherit; }
+    .help { color:var(--muted); font-size:12px; margin-top:12px; }
+    table { width:100%; border-collapse:collapse; } th,td { padding:9px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; } th { font-size:12px; color:var(--muted); font-weight:600; } td input { margin:0; min-width:0; }
+    .right { text-align:right; } .mile { font-variant-numeric:tabular-nums; white-space:nowrap; }
+    button { border:0; border-radius:7px; padding:9px 13px; background:var(--accent); color:var(--accent-ink); font:inherit; cursor:pointer; } button.secondary { background:var(--soft); color:var(--ink); border:1px solid var(--line); } button.delete { color:var(--accent); background:transparent; padding:4px 7px; }
+    .actions { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+    .install { margin:18px 0; padding:13px 15px; background:var(--paper); border:1px solid var(--line); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .summary { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:center; } .bar { height:14px; border-radius:99px; overflow:hidden; background:var(--soft); border:1px solid var(--line); } .bar > span { display:block; height:100%; background:var(--good); width:0%; transition:width .2s; }
+    .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
+    footer { margin-top:22px; color:var(--muted); font-size:12px; }
+    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.install{align-items:flex-start;flex-direction:column}.install button{width:100%}table,tbody,tr,td{display:block}thead{display:none}tr{padding:14px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px}td{border:0;padding:0;text-align:left!important;min-width:0}td::before{content:attr(data-label);display:block;font-size:12px;color:var(--muted);margin-bottom:3px}.month-cell,.name-cell,.condition-cell,.actual-cell,.result-cell,.delete-cell{grid-column:1 / -1}.result-cell{font-weight:700}.delete-cell{margin-top:2px}.delete-cell::before{display:none}.delete-cell button{width:100%}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.mile{white-space:normal}.condition-cell .mile{display:grid;grid-template-columns:1fr auto 1fr auto;gap:5px;align-items:center}.condition-cell input{width:100%} }
+    @media (prefers-color-scheme:dark) { :root{--ink:#e8edf3;--muted:#aab6c2;--line:#354251;--paper:#17212b;--soft:#202c38;--accent:#e4555c;--good:#65d49a} body{background:#101820}.notice{background:#332126} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>JAL LSP 見通し</h1>
+  <p class="lead">マイレージパークで予定している買い物を入力し、今月獲得予定のマイルとLSP、次回に持ち越す対象マイルを確認します。</p>
+  <div class="install" id="installBox" hidden><div><strong>ホーム画面に追加</strong><br><span class="help">アプリのように起動でき、開いた後はオフラインでも使えます。</span></div><button id="installApp" type="button">追加する</button></div>
+  <div class="notice">この計算は、<strong>LSP対象ショップ</strong>で積算されるマイレージパークのマイルを対象にしています。100マイルごとに1 LSPとして計算します。ショップごとの対象可否・キャンペーンの扱いは購入前にJAL公式表示で確認してください。</div>
+
+  <div class="cards">
+    <div class="card"><small>選択月の反映マイル</small><div class="num" id="plannedMiles">0</div></div>
+    <div class="card"><small>選択月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div>
+    <div class="card"><small>選択月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div>
+  </div>
+
+  <section>
+    <h2>現在の状況</h2>
+    <div class="settings">
+      <label>記録開始前のLSP残高<input id="currentLsp" type="number" min="0" value="0" inputmode="numeric"></label>
+      <label>記録開始前の持ち越し対象マイル<input id="carryMiles" type="number" min="0" max="99" value="0" inputmode="numeric"></label>
+      <label>目標LSP（任意）<input id="targetLsp" type="number" min="0" placeholder="例：500" inputmode="numeric"></label>
+    </div>
+    <p class="help">「持ち越し対象マイル」は、過去のLSP対象マイルのうち100マイル未満の端数です。JMBの保有マイル残高や有効期限とは別物です。過去月も登録する場合は、最も古い記録の前時点の値を入力してください。</p>
+  </section>
+
+  <section>
+    <h2>買い物の記録</h2>
+    <div class="settings" style="margin-bottom:16px"><label>表示・集計する月<input id="activeMonth" type="month"></label></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>対象月</th><th>ショップ・メモ</th><th class="right">購入額（税込）</th><th class="right">税率</th><th class="right">税抜の金額</th><th class="right">獲得条件</th><th class="right">実績マイル（任意）</th><th class="right">反映マイル</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="actions"><button id="addRow" type="button">買い物を追加</button><button class="secondary" id="clearRows" type="button">予定を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
+    <p class="help">購入額は税込で入力します。対象となる税抜額は自動で切り捨て計算します。「400円につき3マイル」は、左に <strong>400</strong>、右に <strong>3</strong> とそのまま入力してください。過去の購入で獲得マイルだけ分かる場合は「実績マイル」に入力すると、その値を優先して反映します。別の月を選ぶと、その月の記録を表示できます。</p>
+  </section>
+
+  <section class="summary">
+    <div><h2 id="summaryTitle">選択月末の見通し</h2><p class="result" id="forecast">記録開始前のLSP 0 → 0 LSP</p><p id="targetText" class="help"></p></div>
+    <div><div class="bar" aria-label="目標への進捗"><span id="progress"></span></div><p class="help" id="progressText">目標を入力すると進捗を表示します。</p></div>
+  </section>
+  <footer>入力内容はこのブラウザ内に自動保存されます。機種変更やブラウザのデータ削除に備える場合は「バックアップを保存」をご利用ください。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
+</main>
+<script>
+  const $ = s => document.querySelector(s);
+  const body = $('#rows');
+  const currentMonth = new Date().toISOString().slice(0,7);
+  const storageKey = 'jal-lsp-planner-v2';
+  const oldSaved = JSON.parse(localStorage.getItem('jal-lsp-planner-v1') || 'null');
+  const saved = JSON.parse(localStorage.getItem(storageKey) || 'null') || oldSaved;
+  const initial = saved?.rows?.length ? saved.rows : [{month:currentMonth,name:'', amount:'', tax:'10', unit:'400', miles:'3'}];
+  function val(el) { return Math.max(0, Number(el.value) || 0); }
+  function format(n) { return new Intl.NumberFormat('ja-JP').format(n); }
+  function addRow(data={month:currentMonth,name:'',amount:'',tax:'10',unit:'400',miles:'3',actual:''}) {
+    if (data.rate !== undefined && data.unit === undefined) { data = {...data, tax:'10', unit:'100', miles:data.rate}; }
+    data.month = data.month || currentMonth;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="month-cell" data-label="対象月"><input aria-label="対象月" class="month" type="month" value="${data.month}"></td><td class="name-cell" data-label="ショップ・メモ"><input aria-label="ショップ・メモ" class="name" value="${String(data.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></td><td data-label="購入額（税込）"><input aria-label="購入額（税込）" class="amount right" type="number" min="0" step="1" inputmode="numeric" value="${data.amount}"></td><td data-label="税率（%）"><input aria-label="消費税率" class="tax right" type="number" min="0" step="1" inputmode="numeric" value="${data.tax ?? '10'}"></td><td class="mile pretax" data-label="税抜の金額">0 円</td><td class="condition-cell" data-label="獲得条件"><span class="mile"><input aria-label="何円につき" class="unit right" type="number" min="1" step="1" inputmode="numeric" value="${data.unit ?? '400'}"> 円 → <input aria-label="何マイル" class="earn right" type="number" min="0" step="0.1" inputmode="decimal" value="${data.miles ?? '3'}"> マイル</span></td><td class="actual-cell" data-label="実績マイル（入力時は優先）"><input aria-label="獲得済みの実績マイル" class="actual right" type="number" min="0" step="1" inputmode="numeric" placeholder="優先"></td><td class="mile planned result-cell" data-label="反映マイル">0 マイル</td><td class="delete-cell"><button type="button" class="delete" aria-label="この買い物を削除">削除</button></td>`;
+    tr.querySelector('.actual').value = data.actual ?? '';
+    tr.querySelectorAll('input').forEach(i=>i.addEventListener('input', update));
+    tr.querySelector('.delete').addEventListener('click', ()=>{tr.remove(); update();}); body.append(tr);
+  }
+  function update() {
+    const active=$('#activeMonth').value || currentMonth;
+    const perMonth=new Map();
+    [...body.querySelectorAll('tr')].forEach(tr=>{
+      const month=tr.querySelector('.month').value || currentMonth;
+      const pretax=Math.floor(val(tr.querySelector('.amount'))/(1+val(tr.querySelector('.tax'))/100));
+      const unit=Math.max(1,val(tr.querySelector('.unit')));
+      const calculated=Math.floor(Math.floor(pretax/unit)*val(tr.querySelector('.earn')));
+      const actual=tr.querySelector('.actual').value.trim();
+      const miles=actual === '' ? calculated : Math.floor(Math.max(0,Number(actual)||0));
+      tr.querySelector('.pretax').textContent=`${format(pretax)} 円`;
+      tr.querySelector('.planned').textContent=`${format(miles)} マイル`;
+      perMonth.set(month,(perMonth.get(month)||0)+miles);
+      tr.style.display=month===active?'':'none';
+    });
+    const carry=Math.min(99, Math.floor(val($('#carryMiles'))));
+    const planned=perMonth.get(active)||0;
+    let runningCarry=carry, monthly=0, earnedLsp=0;
+    [...perMonth.keys()].filter(month=>month<=active).sort().forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;earnedLsp+=added;if(month===active)monthly=added;});
+    const remainder=runningCarry;
+    const current=Math.floor(val($('#currentLsp'))), after=current+earnedLsp, target=Math.floor(val($('#targetLsp')));
+    $('#plannedMiles').textContent=`${format(planned)} マイル`; $('#monthlyLsp').textContent=`+${format(monthly)} LSP`; $('#remainderMiles').textContent=`${format(remainder)} マイル`;
+    $('#summaryTitle').textContent=`${active.replace('-','年')}月末の見通し`;
+    $('#forecast').textContent=`記録開始前のLSP ${format(current)} → ${format(after)} LSP`;
+    if(target){const remaining=Math.max(0,target-after), pct=Math.min(100,after/target*100);$('#progress').style.width=`${pct}%`;$('#progressText').textContent=remaining?`目標まであと ${format(remaining)} LSP`:`目標 ${format(target)} LSP を達成予定です。`;$('#targetText').textContent=`選択月までの記録を反映した値です。`;}
+    else{$('#progress').style.width='0%';$('#progressText').textContent='目標を入力すると進捗を表示します。';$('#targetText').textContent='';}
+    localStorage.setItem(storageKey,JSON.stringify({version:3,rows:[...body.querySelectorAll('tr')].map(tr=>({month:tr.querySelector('.month').value,name:tr.querySelector('.name').value,amount:tr.querySelector('.amount').value,tax:tr.querySelector('.tax').value,unit:tr.querySelector('.unit').value,miles:tr.querySelector('.earn').value,actual:tr.querySelector('.actual').value})),current:$('#currentLsp').value,carry:$('#carryMiles').value,target:$('#targetLsp').value,activeMonth:active}));
+  }
+  $('#activeMonth').value=saved?.activeMonth || currentMonth;
+  if(saved){$('#currentLsp').value=saved.current||0;$('#carryMiles').value=saved.carry||0;$('#targetLsp').value=saved.target||'';} initial.forEach(addRow);
+  ['currentLsp','carryMiles','targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',update));
+  $('#addRow').addEventListener('click',()=>{addRow({month:$('#activeMonth').value||currentMonth});update();});
+  $('#clearRows').addEventListener('click',()=>{body.replaceChildren();addRow();update();}); update();
+  $('#backup').addEventListener('click',()=>{const blob=new Blob([localStorage.getItem(storageKey)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='jal-lsp-backup.json';a.click();URL.revokeObjectURL(url);});
+  $('#restore').addEventListener('click',()=>$('#restoreFile').click());
+  $('#restoreFile').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.rows))throw new Error();localStorage.setItem(storageKey,JSON.stringify(data));location.reload();}catch{alert('このバックアップファイルは読み込めません。');}};reader.readAsText(file);event.target.value='';});
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./jal-lsp-sw.js');
+  let deferredInstall;
+  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstall=event;$('#installBox').hidden=false;});
+  $('#installApp').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBox').hidden=true;});
+</script>
+</body>
+</html>
