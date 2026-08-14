@@ -99,7 +99,7 @@
   const storageKey = 'jal-lsp-planner-v2';
   const oldSaved = JSON.parse(localStorage.getItem('jal-lsp-planner-v1') || 'null');
   const saved = JSON.parse(localStorage.getItem(storageKey) || 'null') || oldSaved;
-  let rows = (saved?.rows || []).map((row, index) => ({...row, id:row.id || `record-${Date.now()}-${index}`}));
+  let rows = (saved?.rows || []).filter(row => String(row.name||'').trim() || String(row.amount||'').trim() || String(row.actual||'').trim()).map((row, index) => ({...row, id:row.id || `record-${Date.now()}-${index}`}));
   let editingId = null;
   function val(el) { return Math.max(0, Number(el.value) || 0); }
   function format(n) { return new Intl.NumberFormat('ja-JP').format(n); }
