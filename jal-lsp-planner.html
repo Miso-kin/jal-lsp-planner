@@ -50,25 +50,8 @@
   <p class="lead">マイレージパークで予定している買い物を入力し、今月獲得予定のマイルとLSP、次回に持ち越す対象マイルを確認します。</p>
   <div class="notice">この計算は、<strong>LSP対象ショップ</strong>で積算されるマイレージパークのマイルを対象にしています。100マイルごとに1 LSPとして計算します。ショップごとの対象可否・キャンペーンの扱いは購入前にJAL公式表示で確認してください。</div>
 
-  <div class="cards">
-    <div class="card"><small>選択月の反映マイル</small><div class="num" id="plannedMiles">0</div></div>
-    <div class="card"><small>選択月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div>
-    <div class="card"><small>選択月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div>
-  </div>
-
-  <section>
-    <h2>現在の状況</h2>
-    <div class="settings">
-      <label>記録開始前のLSP残高<input id="currentLsp" type="number" min="0" value="0" inputmode="numeric"></label>
-      <label>記録開始前の持ち越し対象マイル<input id="carryMiles" type="number" min="0" max="99" value="0" inputmode="numeric"></label>
-      <label>目標LSP（任意）<input id="targetLsp" type="number" min="0" placeholder="例：500" inputmode="numeric"></label>
-    </div>
-    <p class="help">「持ち越し対象マイル」は、過去のLSP対象マイルのうち100マイル未満の端数です。JMBの保有マイル残高や有効期限とは別物です。過去月も登録する場合は、最も古い記録の前時点の値を入力してください。</p>
-  </section>
-
   <section>
     <h2>買い物の記録</h2>
-    <div class="settings" style="margin-bottom:16px"><label>見通しを計算する月<input id="activeMonth" type="month"></label></div>
     <form id="entryForm" class="entry-form">
       <label class="wide">ショップ・メモ<input id="entryName" required placeholder="例：楽天市場"></label>
       <label>対象月<input id="entryMonth" required type="month"></label>
@@ -82,14 +65,13 @@
     <p class="help">実績マイルを入力した場合はその数値を優先します。金額・獲得条件が分からない過去分も、ショップ名・対象月・実績マイルだけで登録できます。</p>
     <div id="recordList" class="record-list" aria-live="polite"></div>
     <p id="emptyRecords" class="empty">記録はまだありません。</p>
-    <div class="actions"><button class="secondary" id="clearRows" type="button">選択月の記録を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
   </section>
 
   <section class="summary">
-    <div><h2 id="summaryTitle">選択月末の見通し</h2><p class="result" id="forecast">記録開始前のLSP 0 → 0 LSP</p><p id="targetText" class="help"></p></div>
-    <div><div class="bar" aria-label="目標への進捗"><span id="progress"></span></div><p class="help" id="progressText">目標を入力すると進捗を表示します。</p></div>
+    <div><h2>月別の見通し</h2><div class="settings"><label>対象月<input id="activeMonth" type="month"></label><label>目標LSP（任意）<input id="targetLsp" type="number" min="0" placeholder="例：500" inputmode="numeric"></label></div></div>
+    <div><div class="cards"><div class="card"><small>対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small>対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small>対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div><div class="bar" aria-label="目標への進捗"><span id="progress"></span></div><p class="help" id="progressText">目標を入力すると進捗を表示します。</p></div>
   </section>
-  <footer>入力内容はこのブラウザ内に自動保存されます。機種変更やブラウザのデータ削除に備える場合は「バックアップを保存」をご利用ください。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
+  <footer>入力内容はこのブラウザ内に自動保存されます。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
 </main>
 <script>
   const $ = s => document.querySelector(s);
@@ -130,22 +112,19 @@
     const active=$('#activeMonth').value || currentMonth;
     const perMonth=new Map();
     rows.forEach(row=>{const month=row.month || currentMonth; perMonth.set(month,(perMonth.get(month)||0)+recordMiles(row));});
-    const carry=Math.min(99, Math.floor(val($('#carryMiles'))));
     const planned=perMonth.get(active)||0;
-    let runningCarry=carry, monthly=0, earnedLsp=0;
+    let runningCarry=0, monthly=0, earnedLsp=0;
     [...perMonth.keys()].filter(month=>month<=active).sort().forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;earnedLsp+=added;if(month===active)monthly=added;});
     const remainder=runningCarry;
-    const current=Math.floor(val($('#currentLsp'))), after=current+earnedLsp, target=Math.floor(val($('#targetLsp')));
+    const after=earnedLsp, target=Math.floor(val($('#targetLsp')));
     $('#plannedMiles').textContent=`${format(planned)} マイル`; $('#monthlyLsp').textContent=`+${format(monthly)} LSP`; $('#remainderMiles').textContent=`${format(remainder)} マイル`;
-    $('#summaryTitle').textContent=`${active.replace('-','年')}月末の見通し`;
-    $('#forecast').textContent=`記録開始前のLSP ${format(current)} → ${format(after)} LSP`;
-    if(target){const remaining=Math.max(0,target-after), pct=Math.min(100,after/target*100);$('#progress').style.width=`${pct}%`;$('#progressText').textContent=remaining?`目標まであと ${format(remaining)} LSP`:`目標 ${format(target)} LSP を達成予定です。`;$('#targetText').textContent=`選択月までの記録を反映した値です。`;}
-    else{$('#progress').style.width='0%';$('#progressText').textContent='目標を入力すると進捗を表示します。';$('#targetText').textContent='';}
+    if(target){const remaining=Math.max(0,target-after), pct=Math.min(100,after/target*100);$('#progress').style.width=`${pct}%`;$('#progressText').textContent=remaining?`目標まであと ${format(remaining)} LSP`:`目標 ${format(target)} LSP を達成予定です。`;}
+    else{$('#progress').style.width='0%';$('#progressText').textContent='目標を入力すると進捗を表示します。';}
     renderRecords(active);
-    localStorage.setItem(storageKey,JSON.stringify({version:4,rows,current:$('#currentLsp').value,carry:$('#carryMiles').value,target:$('#targetLsp').value,activeMonth:active}));
+    localStorage.setItem(storageKey,JSON.stringify({version:5,rows,target:$('#targetLsp').value,activeMonth:active}));
   }
   function resetForm() {
-    $('#entryForm').reset(); $('#entryMonth').value=$('#activeMonth').value||currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='100'; $('#entryEarn').value='1';
+    $('#entryForm').reset(); $('#entryMonth').value=currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='100'; $('#entryEarn').value='1';
   }
   function cancelEdit() { editingId=null; $('#saveRecord').textContent='記録に追加'; $('#cancelEdit').hidden=true; resetForm(); }
   function startEdit(id) {
@@ -154,15 +133,12 @@
     $('#saveRecord').textContent='変更を保存'; $('#cancelEdit').hidden=false; $('#entryName').focus(); window.scrollTo({top:$('#entryForm').offsetTop-12,behavior:'smooth'});
   }
   $('#activeMonth').value=saved?.activeMonth || currentMonth;
-  if(saved){$('#currentLsp').value=saved.current||0;$('#carryMiles').value=saved.carry||0;$('#targetLsp').value=saved.target||'';}
+  if(saved){$('#targetLsp').value=saved.target||'';}
   resetForm();
-  ['currentLsp','carryMiles','targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',()=>{if(id==='activeMonth'&&!editingId)$('#entryMonth').value=$('#activeMonth').value||currentMonth;update();}));
-  $('#entryForm').addEventListener('submit',event=>{event.preventDefault(); const row={id:editingId||`record-${Date.now()}`,month:$('#entryMonth').value||currentMonth,name:$('#entryName').value.trim(),amount:$('#entryAmount').value,tax:$('#entryTax').value,unit:$('#entryUnit').value,miles:$('#entryEarn').value,actual:$('#entryActual').value}; if(editingId)rows=rows.map(item=>item.id===editingId?row:item);else rows.push(row); $('#activeMonth').value=row.month; cancelEdit();update();});
+  ['targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',update));
+  $('#entryForm').addEventListener('submit',event=>{event.preventDefault(); const row={id:editingId||`record-${Date.now()}`,month:$('#entryMonth').value||currentMonth,name:$('#entryName').value.trim(),amount:$('#entryAmount').value,tax:$('#entryTax').value,unit:$('#entryUnit').value,miles:$('#entryEarn').value,actual:$('#entryActual').value}; if(editingId)rows=rows.map(item=>item.id===editingId?row:item);else rows.push(row); cancelEdit();update();});
   $('#cancelEdit').addEventListener('click',cancelEdit);
-  $('#clearRows').addEventListener('click',()=>{const active=$('#activeMonth').value||currentMonth;rows=rows.filter(row=>(row.month||currentMonth)!==active);cancelEdit();update();}); update();
-  $('#backup').addEventListener('click',()=>{const blob=new Blob([localStorage.getItem(storageKey)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='jal-lsp-backup.json';a.click();URL.revokeObjectURL(url);});
-  $('#restore').addEventListener('click',()=>$('#restoreFile').click());
-  $('#restoreFile').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.rows))throw new Error();localStorage.setItem(storageKey,JSON.stringify(data));location.reload();}catch{alert('このバックアップファイルは読み込めません。');}};reader.readAsText(file);event.target.value='';});
+  update();
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./jal-lsp-sw.js');
 </script>
 </body>
