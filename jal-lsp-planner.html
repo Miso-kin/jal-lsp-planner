@@ -25,7 +25,7 @@
     .card { padding:16px; } .card small { color:var(--muted); display:block; } .num { font-size:28px; font-weight:700; margin:4px 0 0; font-variant-numeric:tabular-nums; }
     section { padding:20px; margin-top:16px; }
     .settings { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .summary .settings { grid-template-columns:minmax(0,260px); } .summary .settings label { min-width:0; }
+    .summary .settings { grid-template-columns:minmax(0,260px); } .summary .settings label, .entry-form > label { min-width:0; }
     label { display:block; font-size:13px; color:var(--muted); } input { margin-top:5px; width:100%; min-width:0; max-width:100%; border:1px solid var(--line); border-radius:7px; padding:9px; background:var(--paper); color:var(--ink); font:inherit; }
     .help { color:var(--muted); font-size:12px; margin-top:12px; }
     table { width:100%; border-collapse:collapse; } th,td { padding:9px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; } th { font-size:12px; color:var(--muted); font-weight:600; } td input { margin:0; min-width:0; }
@@ -41,7 +41,7 @@
     .summary { display:grid; gap:18px; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
-    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:minmax(0,1fr)}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
+    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:minmax(0,1fr)}.summary .settings{grid-template-columns:minmax(0,1fr);width:100%;max-width:100%}.summary .settings label,.entry-form > label{width:100%;max-width:100%;min-width:0}.summary input[type="month"],.entry-form input[type="month"]{inline-size:100%;min-inline-size:0;max-inline-size:100%}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
     @media (prefers-color-scheme:dark) { :root{--ink:#e8edf3;--muted:#aab6c2;--line:#354251;--paper:#17212b;--soft:#202c38;--accent:#e4555c;--good:#65d49a} body{background:#101820}.notice{background:#332126} }
   </style>
 </head>
