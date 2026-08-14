@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jal-lsp-planner-v5';
+const CACHE_NAME = 'jal-lsp-planner-v6';
 const ASSETS = [
   './jal-lsp-planner.html',
   './jal-lsp-manifest.webmanifest',
