@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jal-lsp-planner-v4';
+const CACHE_NAME = 'jal-lsp-planner-v5';
 const ASSETS = [
   './jal-lsp-planner.html',
   './jal-lsp-manifest.webmanifest',
@@ -17,6 +17,10 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(() => caches.match('./jal-lsp-planner.html')));
+    return;
+  }
   event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
     const copy = response.clone();
     caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
