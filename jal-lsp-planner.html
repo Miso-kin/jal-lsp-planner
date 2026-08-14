@@ -25,7 +25,8 @@
     .card { padding:16px; } .card small { color:var(--muted); display:block; } .num { font-size:28px; font-weight:700; margin:4px 0 0; font-variant-numeric:tabular-nums; }
     section { padding:20px; margin-top:16px; }
     .settings { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    label { display:block; font-size:13px; color:var(--muted); } input { margin-top:5px; width:100%; border:1px solid var(--line); border-radius:7px; padding:9px; background:var(--paper); color:var(--ink); font:inherit; }
+    .summary .settings { grid-template-columns:minmax(0,260px); } .summary .settings label { min-width:0; }
+    label { display:block; font-size:13px; color:var(--muted); } input { margin-top:5px; width:100%; min-width:0; max-width:100%; border:1px solid var(--line); border-radius:7px; padding:9px; background:var(--paper); color:var(--ink); font:inherit; }
     .help { color:var(--muted); font-size:12px; margin-top:12px; }
     table { width:100%; border-collapse:collapse; } th,td { padding:9px 6px; border-bottom:1px solid var(--line); text-align:left; vertical-align:middle; } th { font-size:12px; color:var(--muted); font-weight:600; } td input { margin:0; min-width:0; }
     .right { text-align:right; } .mile { font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -40,7 +41,7 @@
     .summary { display:grid; gap:18px; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
-    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
+    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:minmax(0,1fr)}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
     @media (prefers-color-scheme:dark) { :root{--ink:#e8edf3;--muted:#aab6c2;--line:#354251;--paper:#17212b;--soft:#202c38;--accent:#e4555c;--good:#65d49a} body{background:#101820}.notice{background:#332126} }
   </style>
 </head>
@@ -69,7 +70,7 @@
 
   <section class="summary">
     <div><h2>月別の見通し</h2><div class="settings"><label>対象月<input id="activeMonth" type="month"></label></div></div>
-    <div class="cards"><div class="card"><small>対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small>対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small>対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div>
+    <div class="cards"><div class="card"><small id="plannedMilesLabel">対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small id="monthlyLspLabel">対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small id="remainderMilesLabel">対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div>
   </section>
   <footer>入力内容はこのブラウザ内に自動保存されます。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
 </main>
@@ -116,6 +117,8 @@
     let runningCarry=0, monthly=0, earnedLsp=0;
     [...perMonth.keys()].filter(month=>month<=active).sort().forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;earnedLsp+=added;if(month===active)monthly=added;});
     const remainder=runningCarry;
+    const monthLabel=active.replace(/^(\d{4})-(\d{2})$/,(_,year,month)=>`${year}年${Number(month)}月`);
+    $('#plannedMilesLabel').textContent=`${monthLabel}の反映マイル`; $('#monthlyLspLabel').textContent=`${monthLabel}に増えるLSP`; $('#remainderMilesLabel').textContent=`${monthLabel}末の持ち越し対象マイル`;
     $('#plannedMiles').textContent=`${format(planned)} マイル`; $('#monthlyLsp').textContent=`+${format(monthly)} LSP`; $('#remainderMiles').textContent=`${format(remainder)} マイル`;
     renderRecords(active);
     localStorage.setItem(storageKey,JSON.stringify({version:6,rows,activeMonth:active}));
