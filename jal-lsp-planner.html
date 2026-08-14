@@ -31,11 +31,17 @@
     .right { text-align:right; } .mile { font-variant-numeric:tabular-nums; white-space:nowrap; }
     button { border:0; border-radius:7px; padding:9px 13px; background:var(--accent); color:var(--accent-ink); font:inherit; cursor:pointer; } button.secondary { background:var(--soft); color:var(--ink); border:1px solid var(--line); } button.delete { color:var(--accent); background:transparent; padding:4px 7px; }
     .actions { margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; }
+    .entry-form { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:12px; align-items:end; }
+    .entry-form .wide { grid-column:span 2; } .entry-form .full { grid-column:1 / -1; }
+    .record-list { display:grid; gap:9px; margin-top:18px; }
+    .record { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:12px; display:grid; grid-template-columns:1fr auto; gap:8px 12px; }
+    .record h3 { margin:0; font-size:16px; font-weight:500; }.record .meta { color:var(--muted); font-size:13px; }.record .record-mile { font-weight:700; text-align:right; white-space:nowrap; }.record .record-actions { grid-column:1 / -1; display:flex; gap:8px; }.record .record-actions button { padding:5px 9px; font-size:13px; }
+    .empty { color:var(--muted); margin:14px 0 0; }
     .install { margin:18px 0; padding:13px 15px; background:var(--paper); border:1px solid var(--line); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .summary { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:center; } .bar { height:14px; border-radius:99px; overflow:hidden; background:var(--soft); border:1px solid var(--line); } .bar > span { display:block; height:100%; background:var(--good); width:0%; transition:width .2s; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
-    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.install{align-items:flex-start;flex-direction:column}.install button{width:100%}table,tbody,tr,td{display:block}thead{display:none}tr{padding:14px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:10px}td{border:0;padding:0;text-align:left!important;min-width:0}td::before{content:attr(data-label);display:block;font-size:12px;color:var(--muted);margin-bottom:3px}.month-cell,.name-cell,.condition-cell,.actual-cell,.result-cell,.delete-cell{grid-column:1 / -1}.result-cell{font-weight:700}.delete-cell{margin-top:2px}.delete-cell::before{display:none}.delete-cell button{width:100%}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.mile{white-space:normal}.condition-cell .mile{display:grid;grid-template-columns:1fr auto 1fr auto;gap:5px;align-items:center}.condition-cell input{width:100%} }
+    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.install{align-items:flex-start;flex-direction:column}.install button{width:100%}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
     @media (prefers-color-scheme:dark) { :root{--ink:#e8edf3;--muted:#aab6c2;--line:#354251;--paper:#17212b;--soft:#202c38;--accent:#e4555c;--good:#65d49a} body{background:#101820}.notice{background:#332126} }
   </style>
 </head>
@@ -65,12 +71,20 @@
   <section>
     <h2>買い物の記録</h2>
     <div class="settings" style="margin-bottom:16px"><label>表示・集計する月<input id="activeMonth" type="month"></label></div>
-    <div style="overflow-x:auto"><table>
-      <thead><tr><th>対象月</th><th>ショップ・メモ</th><th class="right">購入額（税込）</th><th class="right">税率</th><th class="right">税抜の金額</th><th class="right">獲得条件</th><th class="right">実績マイル（任意）</th><th class="right">反映マイル</th><th></th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>
-    <div class="actions"><button id="addRow" type="button">買い物を追加</button><button class="secondary" id="clearRows" type="button">予定を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
-    <p class="help">購入額は税込で入力します。対象となる税抜額は自動で切り捨て計算します。「400円につき3マイル」は、左に <strong>400</strong>、右に <strong>3</strong> とそのまま入力してください。過去の購入で獲得マイルだけ分かる場合は「実績マイル」に入力すると、その値を優先して反映します。別の月を選ぶと、その月の記録を表示できます。</p>
+    <form id="entryForm" class="entry-form">
+      <label class="wide">ショップ・メモ<input id="entryName" required placeholder="例：楽天市場"></label>
+      <label>対象月<input id="entryMonth" required type="month"></label>
+      <label>購入額（税込）<input id="entryAmount" type="number" min="0" step="1" inputmode="numeric" placeholder="任意"></label>
+      <label>税率（%）<input id="entryTax" type="number" min="0" step="1" inputmode="numeric" value="10"></label>
+      <label>何円につき<input id="entryUnit" type="number" min="1" step="1" inputmode="numeric" value="400"></label>
+      <label>何マイル<input id="entryEarn" type="number" min="0" step="0.1" inputmode="decimal" value="3"></label>
+      <label>実績マイル<input id="entryActual" type="number" min="0" step="1" inputmode="numeric" placeholder="分かる場合のみ"></label>
+      <div class="actions full"><button id="saveRecord" type="submit">記録に追加</button><button id="cancelEdit" class="secondary" type="button" hidden>編集をやめる</button></div>
+    </form>
+    <p class="help">実績マイルを入力した場合はその数値を優先します。金額・獲得条件が分からない過去分も、ショップ名・対象月・実績マイルだけで登録できます。</p>
+    <div id="recordList" class="record-list" aria-live="polite"></div>
+    <p id="emptyRecords" class="empty">この月の記録はまだありません。</p>
+    <div class="actions"><button class="secondary" id="clearRows" type="button">この月の記録を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
   </section>
 
   <section class="summary">
@@ -81,38 +95,43 @@
 </main>
 <script>
   const $ = s => document.querySelector(s);
-  const body = $('#rows');
   const currentMonth = new Date().toISOString().slice(0,7);
   const storageKey = 'jal-lsp-planner-v2';
   const oldSaved = JSON.parse(localStorage.getItem('jal-lsp-planner-v1') || 'null');
   const saved = JSON.parse(localStorage.getItem(storageKey) || 'null') || oldSaved;
-  const initial = saved?.rows?.length ? saved.rows : [{month:currentMonth,name:'', amount:'', tax:'10', unit:'400', miles:'3'}];
+  let rows = (saved?.rows || []).map((row, index) => ({...row, id:row.id || `record-${Date.now()}-${index}`}));
+  let editingId = null;
   function val(el) { return Math.max(0, Number(el.value) || 0); }
   function format(n) { return new Intl.NumberFormat('ja-JP').format(n); }
-  function addRow(data={month:currentMonth,name:'',amount:'',tax:'10',unit:'400',miles:'3',actual:''}) {
-    if (data.rate !== undefined && data.unit === undefined) { data = {...data, tax:'10', unit:'100', miles:data.rate}; }
-    data.month = data.month || currentMonth;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="month-cell" data-label="対象月"><input aria-label="対象月" class="month" type="month" value="${data.month}"></td><td class="name-cell" data-label="ショップ・メモ"><input aria-label="ショップ・メモ" class="name" value="${String(data.name).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></td><td data-label="購入額（税込）"><input aria-label="購入額（税込）" class="amount right" type="number" min="0" step="1" inputmode="numeric" value="${data.amount}"></td><td data-label="税率（%）"><input aria-label="消費税率" class="tax right" type="number" min="0" step="1" inputmode="numeric" value="${data.tax ?? '10'}"></td><td class="mile pretax" data-label="税抜の金額">0 円</td><td class="condition-cell" data-label="獲得条件"><span class="mile"><input aria-label="何円につき" class="unit right" type="number" min="1" step="1" inputmode="numeric" value="${data.unit ?? '400'}"> 円 → <input aria-label="何マイル" class="earn right" type="number" min="0" step="0.1" inputmode="decimal" value="${data.miles ?? '3'}"> マイル</span></td><td class="actual-cell" data-label="実績マイル（入力時は優先）"><input aria-label="獲得済みの実績マイル" class="actual right" type="number" min="0" step="1" inputmode="numeric" placeholder="優先"></td><td class="mile planned result-cell" data-label="反映マイル">0 マイル</td><td class="delete-cell"><button type="button" class="delete" aria-label="この買い物を削除">削除</button></td>`;
-    tr.querySelector('.actual').value = data.actual ?? '';
-    tr.querySelectorAll('input').forEach(i=>i.addEventListener('input', update));
-    tr.querySelector('.delete').addEventListener('click', ()=>{tr.remove(); update();}); body.append(tr);
+  function recordMiles(row) {
+    const actual=String(row.actual ?? '').trim();
+    if (actual !== '') return Math.floor(Math.max(0, Number(actual) || 0));
+    const pretax=Math.floor(Math.max(0,Number(row.amount)||0)/(1+Math.max(0,Number(row.tax)||0)/100));
+    return Math.floor(Math.floor(pretax/Math.max(1,Number(row.unit)||1))*Math.max(0,Number(row.miles)||0));
+  }
+  function recordDetail(row) {
+    if (String(row.actual ?? '').trim() !== '') return '実績マイルを登録';
+    const amount=Math.max(0,Number(row.amount)||0), tax=Math.max(0,Number(row.tax)||0);
+    if (!amount) return '獲得条件から計算';
+    return `税込 ${format(amount)}円 → 税抜 ${format(Math.floor(amount/(1+tax/100)))}円／${format(row.unit)}円で${format(row.miles)}マイル`;
+  }
+  function escapeHtml(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function renderRecords(active) {
+    const list=$('#recordList'); list.replaceChildren();
+    const visible=rows.filter(row=>(row.month || currentMonth)===active);
+    $('#emptyRecords').hidden=visible.length>0;
+    visible.forEach(row=>{
+      const item=document.createElement('article'); item.className='record';
+      item.innerHTML=`<div><h3>${escapeHtml(row.name || '名称未入力')}</h3><div class="meta">${recordDetail(row)}</div></div><div class="record-mile">${format(recordMiles(row))} マイル</div><div class="record-actions"><button class="secondary edit" type="button">編集</button><button class="delete remove" type="button">削除</button></div>`;
+      item.querySelector('.edit').addEventListener('click',()=>startEdit(row.id));
+      item.querySelector('.remove').addEventListener('click',()=>{rows=rows.filter(item=>item.id!==row.id);if(editingId===row.id)cancelEdit();update();});
+      list.append(item);
+    });
   }
   function update() {
     const active=$('#activeMonth').value || currentMonth;
     const perMonth=new Map();
-    [...body.querySelectorAll('tr')].forEach(tr=>{
-      const month=tr.querySelector('.month').value || currentMonth;
-      const pretax=Math.floor(val(tr.querySelector('.amount'))/(1+val(tr.querySelector('.tax'))/100));
-      const unit=Math.max(1,val(tr.querySelector('.unit')));
-      const calculated=Math.floor(Math.floor(pretax/unit)*val(tr.querySelector('.earn')));
-      const actual=tr.querySelector('.actual').value.trim();
-      const miles=actual === '' ? calculated : Math.floor(Math.max(0,Number(actual)||0));
-      tr.querySelector('.pretax').textContent=`${format(pretax)} 円`;
-      tr.querySelector('.planned').textContent=`${format(miles)} マイル`;
-      perMonth.set(month,(perMonth.get(month)||0)+miles);
-      tr.style.display=month===active?'':'none';
-    });
+    rows.forEach(row=>{const month=row.month || currentMonth; perMonth.set(month,(perMonth.get(month)||0)+recordMiles(row));});
     const carry=Math.min(99, Math.floor(val($('#carryMiles'))));
     const planned=perMonth.get(active)||0;
     let runningCarry=carry, monthly=0, earnedLsp=0;
@@ -124,13 +143,25 @@
     $('#forecast').textContent=`記録開始前のLSP ${format(current)} → ${format(after)} LSP`;
     if(target){const remaining=Math.max(0,target-after), pct=Math.min(100,after/target*100);$('#progress').style.width=`${pct}%`;$('#progressText').textContent=remaining?`目標まであと ${format(remaining)} LSP`:`目標 ${format(target)} LSP を達成予定です。`;$('#targetText').textContent=`選択月までの記録を反映した値です。`;}
     else{$('#progress').style.width='0%';$('#progressText').textContent='目標を入力すると進捗を表示します。';$('#targetText').textContent='';}
-    localStorage.setItem(storageKey,JSON.stringify({version:3,rows:[...body.querySelectorAll('tr')].map(tr=>({month:tr.querySelector('.month').value,name:tr.querySelector('.name').value,amount:tr.querySelector('.amount').value,tax:tr.querySelector('.tax').value,unit:tr.querySelector('.unit').value,miles:tr.querySelector('.earn').value,actual:tr.querySelector('.actual').value})),current:$('#currentLsp').value,carry:$('#carryMiles').value,target:$('#targetLsp').value,activeMonth:active}));
+    renderRecords(active);
+    localStorage.setItem(storageKey,JSON.stringify({version:4,rows,current:$('#currentLsp').value,carry:$('#carryMiles').value,target:$('#targetLsp').value,activeMonth:active}));
+  }
+  function resetForm() {
+    $('#entryForm').reset(); $('#entryMonth').value=$('#activeMonth').value||currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='400'; $('#entryEarn').value='3';
+  }
+  function cancelEdit() { editingId=null; $('#saveRecord').textContent='記録に追加'; $('#cancelEdit').hidden=true; resetForm(); }
+  function startEdit(id) {
+    const row=rows.find(item=>item.id===id); if(!row)return;
+    editingId=id; $('#entryName').value=row.name||''; $('#entryMonth').value=row.month||currentMonth; $('#entryAmount').value=row.amount||''; $('#entryTax').value=row.tax??'10'; $('#entryUnit').value=row.unit??'400'; $('#entryEarn').value=row.miles??'3'; $('#entryActual').value=row.actual??'';
+    $('#saveRecord').textContent='変更を保存'; $('#cancelEdit').hidden=false; $('#entryName').focus(); window.scrollTo({top:$('#entryForm').offsetTop-12,behavior:'smooth'});
   }
   $('#activeMonth').value=saved?.activeMonth || currentMonth;
-  if(saved){$('#currentLsp').value=saved.current||0;$('#carryMiles').value=saved.carry||0;$('#targetLsp').value=saved.target||'';} initial.forEach(addRow);
-  ['currentLsp','carryMiles','targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',update));
-  $('#addRow').addEventListener('click',()=>{addRow({month:$('#activeMonth').value||currentMonth});update();});
-  $('#clearRows').addEventListener('click',()=>{body.replaceChildren();addRow();update();}); update();
+  if(saved){$('#currentLsp').value=saved.current||0;$('#carryMiles').value=saved.carry||0;$('#targetLsp').value=saved.target||'';}
+  resetForm();
+  ['currentLsp','carryMiles','targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',()=>{if(id==='activeMonth'&&!editingId)$('#entryMonth').value=$('#activeMonth').value||currentMonth;update();}));
+  $('#entryForm').addEventListener('submit',event=>{event.preventDefault(); const row={id:editingId||`record-${Date.now()}`,month:$('#entryMonth').value||currentMonth,name:$('#entryName').value.trim(),amount:$('#entryAmount').value,tax:$('#entryTax').value,unit:$('#entryUnit').value,miles:$('#entryEarn').value,actual:$('#entryActual').value}; if(editingId)rows=rows.map(item=>item.id===editingId?row:item);else rows.push(row); $('#activeMonth').value=row.month; cancelEdit();update();});
+  $('#cancelEdit').addEventListener('click',cancelEdit);
+  $('#clearRows').addEventListener('click',()=>{const active=$('#activeMonth').value||currentMonth;rows=rows.filter(row=>(row.month||currentMonth)!==active);cancelEdit();update();}); update();
   $('#backup').addEventListener('click',()=>{const blob=new Blob([localStorage.getItem(storageKey)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='jal-lsp-backup.json';a.click();URL.revokeObjectURL(url);});
   $('#restore').addEventListener('click',()=>$('#restoreFile').click());
   $('#restoreFile').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.rows))throw new Error();localStorage.setItem(storageKey,JSON.stringify(data));location.reload();}catch{alert('このバックアップファイルは読み込めません。');}};reader.readAsText(file);event.target.value='';});
