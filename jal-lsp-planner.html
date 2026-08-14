@@ -68,7 +68,7 @@
 
   <section>
     <h2>買い物の記録</h2>
-    <div class="settings" style="margin-bottom:16px"><label>表示・集計する月<input id="activeMonth" type="month"></label></div>
+    <div class="settings" style="margin-bottom:16px"><label>見通しを計算する月<input id="activeMonth" type="month"></label></div>
     <form id="entryForm" class="entry-form">
       <label class="wide">ショップ・メモ<input id="entryName" required placeholder="例：楽天市場"></label>
       <label>対象月<input id="entryMonth" required type="month"></label>
@@ -81,8 +81,8 @@
     </form>
     <p class="help">実績マイルを入力した場合はその数値を優先します。金額・獲得条件が分からない過去分も、ショップ名・対象月・実績マイルだけで登録できます。</p>
     <div id="recordList" class="record-list" aria-live="polite"></div>
-    <p id="emptyRecords" class="empty">この月の記録はまだありません。</p>
-    <div class="actions"><button class="secondary" id="clearRows" type="button">この月の記録を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
+    <p id="emptyRecords" class="empty">記録はまだありません。</p>
+    <div class="actions"><button class="secondary" id="clearRows" type="button">選択月の記録を消去</button><button class="secondary" id="backup" type="button">バックアップを保存</button><button class="secondary" id="restore" type="button">バックアップを復元</button><input id="restoreFile" type="file" accept="application/json" hidden></div>
   </section>
 
   <section class="summary">
@@ -116,11 +116,11 @@
   function escapeHtml(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function renderRecords(active) {
     const list=$('#recordList'); list.replaceChildren();
-    const visible=rows.filter(row=>(row.month || currentMonth)===active);
+    const visible=[...rows].sort((a,b)=>(b.month||currentMonth).localeCompare(a.month||currentMonth));
     $('#emptyRecords').hidden=visible.length>0;
     visible.forEach(row=>{
       const item=document.createElement('article'); item.className='record';
-      item.innerHTML=`<div><h3>${escapeHtml(row.name || '名称未入力')}</h3><div class="meta">${recordDetail(row)}</div></div><div class="record-mile">${format(recordMiles(row))} マイル</div><div class="record-actions"><button class="secondary edit" type="button">編集</button><button class="delete remove" type="button">削除</button></div>`;
+      item.innerHTML=`<div><h3>${escapeHtml(row.name || '名称未入力')}</h3><div class="meta">${escapeHtml((row.month||currentMonth).replace('-','年'))}月 · ${recordDetail(row)}</div></div><div class="record-mile">${format(recordMiles(row))} マイル</div><div class="record-actions"><button class="secondary edit" type="button">編集</button><button class="delete remove" type="button">削除</button></div>`;
       item.querySelector('.edit').addEventListener('click',()=>startEdit(row.id));
       item.querySelector('.remove').addEventListener('click',()=>{rows=rows.filter(item=>item.id!==row.id);if(editingId===row.id)cancelEdit();update();});
       list.append(item);
