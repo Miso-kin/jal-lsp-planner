@@ -74,8 +74,8 @@
       <label>対象月<input id="entryMonth" required type="month"></label>
       <label>購入額（税込）<input id="entryAmount" type="number" min="0" step="1" inputmode="numeric" placeholder="任意"></label>
       <label>税率（%）<input id="entryTax" type="number" min="0" step="1" inputmode="numeric" value="10"></label>
-      <label>何円につき<input id="entryUnit" type="number" min="1" step="1" inputmode="numeric" value="400"></label>
-      <label>何マイル<input id="entryEarn" type="number" min="0" step="0.1" inputmode="decimal" value="3"></label>
+      <label>何円につき<input id="entryUnit" type="number" min="1" step="1" inputmode="numeric" value="100"></label>
+      <label>何マイル<input id="entryEarn" type="number" min="0" step="0.1" inputmode="decimal" value="1"></label>
       <label>実績マイル<input id="entryActual" type="number" min="0" step="1" inputmode="numeric" placeholder="分かる場合のみ"></label>
       <div class="actions full"><button id="saveRecord" type="submit">記録に追加</button><button id="cancelEdit" class="secondary" type="button" hidden>編集をやめる</button></div>
     </form>
@@ -145,7 +145,7 @@
     localStorage.setItem(storageKey,JSON.stringify({version:4,rows,current:$('#currentLsp').value,carry:$('#carryMiles').value,target:$('#targetLsp').value,activeMonth:active}));
   }
   function resetForm() {
-    $('#entryForm').reset(); $('#entryMonth').value=$('#activeMonth').value||currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='400'; $('#entryEarn').value='3';
+    $('#entryForm').reset(); $('#entryMonth').value=$('#activeMonth').value||currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='100'; $('#entryEarn').value='1';
   }
   function cancelEdit() { editingId=null; $('#saveRecord').textContent='記録に追加'; $('#cancelEdit').hidden=true; resetForm(); }
   function startEdit(id) {
