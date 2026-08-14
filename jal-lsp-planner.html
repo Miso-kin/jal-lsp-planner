@@ -37,7 +37,7 @@
     .record { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:12px; display:grid; grid-template-columns:1fr auto; gap:8px 12px; }
     .record h3 { margin:0; font-size:16px; font-weight:500; }.record .meta { color:var(--muted); font-size:13px; }.record .record-mile { font-weight:700; text-align:right; white-space:nowrap; }.record .record-actions { grid-column:1 / -1; display:flex; gap:8px; }.record .record-actions button { padding:5px 9px; font-size:13px; }
     .empty { color:var(--muted); margin:14px 0 0; }
-    .summary { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:center; } .bar { height:14px; border-radius:99px; overflow:hidden; background:var(--soft); border:1px solid var(--line); } .bar > span { display:block; height:100%; background:var(--good); width:0%; transition:width .2s; }
+    .summary { display:grid; gap:18px; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
     @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
@@ -68,8 +68,8 @@
   </section>
 
   <section class="summary">
-    <div><h2>月別の見通し</h2><div class="settings"><label>対象月<input id="activeMonth" type="month"></label><label>目標LSP（任意）<input id="targetLsp" type="number" min="0" placeholder="例：500" inputmode="numeric"></label></div></div>
-    <div><div class="cards"><div class="card"><small>対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small>対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small>対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div><div class="bar" aria-label="目標への進捗"><span id="progress"></span></div><p class="help" id="progressText">目標を入力すると進捗を表示します。</p></div>
+    <div><h2>月別の見通し</h2><div class="settings"><label>対象月<input id="activeMonth" type="month"></label></div></div>
+    <div class="cards"><div class="card"><small>対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small>対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small>対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div>
   </section>
   <footer>入力内容はこのブラウザ内に自動保存されます。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
 </main>
@@ -116,12 +116,9 @@
     let runningCarry=0, monthly=0, earnedLsp=0;
     [...perMonth.keys()].filter(month=>month<=active).sort().forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;earnedLsp+=added;if(month===active)monthly=added;});
     const remainder=runningCarry;
-    const after=earnedLsp, target=Math.floor(val($('#targetLsp')));
     $('#plannedMiles').textContent=`${format(planned)} マイル`; $('#monthlyLsp').textContent=`+${format(monthly)} LSP`; $('#remainderMiles').textContent=`${format(remainder)} マイル`;
-    if(target){const remaining=Math.max(0,target-after), pct=Math.min(100,after/target*100);$('#progress').style.width=`${pct}%`;$('#progressText').textContent=remaining?`目標まであと ${format(remaining)} LSP`:`目標 ${format(target)} LSP を達成予定です。`;}
-    else{$('#progress').style.width='0%';$('#progressText').textContent='目標を入力すると進捗を表示します。';}
     renderRecords(active);
-    localStorage.setItem(storageKey,JSON.stringify({version:5,rows,target:$('#targetLsp').value,activeMonth:active}));
+    localStorage.setItem(storageKey,JSON.stringify({version:6,rows,activeMonth:active}));
   }
   function resetForm() {
     $('#entryForm').reset(); $('#entryMonth').value=currentMonth; $('#entryTax').value='10'; $('#entryUnit').value='100'; $('#entryEarn').value='1';
@@ -133,9 +130,8 @@
     $('#saveRecord').textContent='変更を保存'; $('#cancelEdit').hidden=false; $('#entryName').focus(); window.scrollTo({top:$('#entryForm').offsetTop-12,behavior:'smooth'});
   }
   $('#activeMonth').value=saved?.activeMonth || currentMonth;
-  if(saved){$('#targetLsp').value=saved.target||'';}
   resetForm();
-  ['targetLsp','activeMonth'].forEach(id=>$('#'+id).addEventListener('input',update));
+  $('#activeMonth').addEventListener('input',update);
   $('#entryForm').addEventListener('submit',event=>{event.preventDefault(); const row={id:editingId||`record-${Date.now()}`,month:$('#entryMonth').value||currentMonth,name:$('#entryName').value.trim(),amount:$('#entryAmount').value,tax:$('#entryTax').value,unit:$('#entryUnit').value,miles:$('#entryEarn').value,actual:$('#entryActual').value}; if(editingId)rows=rows.map(item=>item.id===editingId?row:item);else rows.push(row); cancelEdit();update();});
   $('#cancelEdit').addEventListener('click',cancelEdit);
   update();
