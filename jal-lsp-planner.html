@@ -37,11 +37,10 @@
     .record { background:var(--soft); border:1px solid var(--line); border-radius:10px; padding:12px; display:grid; grid-template-columns:1fr auto; gap:8px 12px; }
     .record h3 { margin:0; font-size:16px; font-weight:500; }.record .meta { color:var(--muted); font-size:13px; }.record .record-mile { font-weight:700; text-align:right; white-space:nowrap; }.record .record-actions { grid-column:1 / -1; display:flex; gap:8px; }.record .record-actions button { padding:5px 9px; font-size:13px; }
     .empty { color:var(--muted); margin:14px 0 0; }
-    .install { margin:18px 0; padding:13px 15px; background:var(--paper); border:1px solid var(--line); border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
     .summary { display:grid; grid-template-columns:1.2fr .8fr; gap:18px; align-items:center; } .bar { height:14px; border-radius:99px; overflow:hidden; background:var(--soft); border:1px solid var(--line); } .bar > span { display:block; height:100%; background:var(--good); width:0%; transition:width .2s; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
-    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.install{align-items:flex-start;flex-direction:column}.install button{width:100%}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
+    @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:1fr}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
     @media (prefers-color-scheme:dark) { :root{--ink:#e8edf3;--muted:#aab6c2;--line:#354251;--paper:#17212b;--soft:#202c38;--accent:#e4555c;--good:#65d49a} body{background:#101820}.notice{background:#332126} }
   </style>
 </head>
@@ -49,7 +48,6 @@
 <main>
   <h1>JAL LSP 見通し</h1>
   <p class="lead">マイレージパークで予定している買い物を入力し、今月獲得予定のマイルとLSP、次回に持ち越す対象マイルを確認します。</p>
-  <div class="install" id="installBox" hidden><div><strong>ホーム画面に追加</strong><br><span class="help">アプリのように起動でき、開いた後はオフラインでも使えます。</span></div><button id="installApp" type="button">追加する</button></div>
   <div class="notice">この計算は、<strong>LSP対象ショップ</strong>で積算されるマイレージパークのマイルを対象にしています。100マイルごとに1 LSPとして計算します。ショップごとの対象可否・キャンペーンの扱いは購入前にJAL公式表示で確認してください。</div>
 
   <div class="cards">
@@ -166,9 +164,6 @@
   $('#restore').addEventListener('click',()=>$('#restoreFile').click());
   $('#restoreFile').addEventListener('change',event=>{const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=()=>{try{const data=JSON.parse(reader.result);if(!Array.isArray(data.rows))throw new Error();localStorage.setItem(storageKey,JSON.stringify(data));location.reload();}catch{alert('このバックアップファイルは読み込めません。');}};reader.readAsText(file);event.target.value='';});
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('./jal-lsp-sw.js');
-  let deferredInstall;
-  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstall=event;$('#installBox').hidden=false;});
-  $('#installApp').addEventListener('click',async()=>{if(!deferredInstall)return;deferredInstall.prompt();await deferredInstall.userChoice;deferredInstall=null;$('#installBox').hidden=true;});
 </script>
 </body>
 </html>
