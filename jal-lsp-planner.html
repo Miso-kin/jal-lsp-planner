@@ -42,6 +42,7 @@
     .record h3 { margin:0; font-size:16px; font-weight:500; }.record .meta { color:var(--muted); font-size:13px; }.record .record-mile { font-weight:700; text-align:right; white-space:nowrap; }.record .record-actions { grid-column:1 / -1; display:flex; gap:8px; }.record .record-actions button { padding:5px 9px; font-size:13px; }
     .empty { color:var(--muted); margin:14px 0 0; }
     .summary { display:grid; gap:18px; }
+    .total-card { padding:16px; background:var(--soft); border:1px solid var(--line); border-radius:10px; } .total-card small { color:var(--muted); display:block; }
     .result { color:var(--good); font-weight:700; font-size:19px; } .warning { color:#8a5600; }
     footer { margin-top:22px; color:var(--muted); font-size:12px; }
     @media (max-width:640px) { h1{font-size:25px}.cards,.settings,.summary,.entry-form{grid-template-columns:minmax(0,1fr)}.summary .settings{grid-template-columns:minmax(0,1fr);width:100%;max-width:100%}.summary .settings label,.entry-form > label{width:100%;max-width:100%;min-width:0}.month-control{width:100%;max-width:100%}.cards{gap:8px}.card{padding:13px}.num{font-size:25px}section{padding:15px}.entry-form .wide,.entry-form .full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr 1fr}.actions button:first-child{grid-column:1 / -1}.actions button{width:100%}.record{grid-template-columns:1fr}.record .record-mile{text-align:left}.record .record-actions{grid-column:auto}.mile{white-space:normal} }
@@ -74,6 +75,10 @@
   <section class="summary">
     <div><h2>月別の見通し</h2><div class="settings"><label>対象月<span class="month-control"><input id="activeMonth" type="month"></span></label></div></div>
     <div class="cards"><div class="card"><small id="plannedMilesLabel">対象月の反映マイル</small><div class="num" id="plannedMiles">0</div></div><div class="card"><small id="monthlyLspLabel">対象月に増えるLSP</small><div class="num" id="monthlyLsp">0</div></div><div class="card"><small id="remainderMilesLabel">対象月末の持ち越し対象マイル</small><div class="num" id="remainderMiles">0</div></div></div>
+  </section>
+  <section>
+    <h2>通算の見通し</h2>
+    <div class="total-card"><small>マイレージパーク通算LSP</small><div class="num" id="totalLsp">0 LSP</div><p class="help">登録済みの買い物記録を合算した見込みです。</p></div>
   </section>
   <footer>入力内容はこのブラウザ内に自動保存されます。JALの制度・対象ショップ・積算条件が変更された場合は、公式情報を優先してください。</footer>
 </main>
@@ -117,12 +122,16 @@
     const perMonth=new Map();
     rows.forEach(row=>{const month=row.month || currentMonth; perMonth.set(month,(perMonth.get(month)||0)+recordMiles(row));});
     const planned=perMonth.get(active)||0;
-    let runningCarry=0, monthly=0, earnedLsp=0;
-    [...perMonth.keys()].filter(month=>month<=active).sort().forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;earnedLsp+=added;if(month===active)monthly=added;});
+    const allMonths=[...perMonth.keys()].sort();
+    let runningCarry=0, monthly=0;
+    allMonths.filter(month=>month<=active).forEach(month=>{const added=Math.floor((runningCarry+perMonth.get(month))/100);runningCarry=(runningCarry+perMonth.get(month))%100;if(month===active)monthly=added;});
     const remainder=runningCarry;
+    let totalCarry=0,totalLsp=0;
+    allMonths.forEach(month=>{const added=Math.floor((totalCarry+perMonth.get(month))/100);totalCarry=(totalCarry+perMonth.get(month))%100;totalLsp+=added;});
     const monthLabel=active.replace(/^(\d{4})-(\d{2})$/,(_,year,month)=>`${year}年${Number(month)}月`);
     $('#plannedMilesLabel').textContent=`${monthLabel}の反映マイル`; $('#monthlyLspLabel').textContent=`${monthLabel}に増えるLSP`; $('#remainderMilesLabel').textContent=`${monthLabel}末の持ち越し対象マイル`;
     $('#plannedMiles').textContent=`${format(planned)} マイル`; $('#monthlyLsp').textContent=`+${format(monthly)} LSP`; $('#remainderMiles').textContent=`${format(remainder)} マイル`;
+    $('#totalLsp').textContent=`${format(totalLsp)} LSP`;
     renderRecords(active);
     localStorage.setItem(storageKey,JSON.stringify({version:6,rows,activeMonth:active}));
   }
